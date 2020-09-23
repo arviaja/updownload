@@ -14,3 +14,9 @@ Time measured excludes the time to open the socket as well as file-generation an
 ```
 $ python updownload.py <hostname|host_ip>
 ```
+
+## To do's
+
+- add latency test at beginning and end
+- add full command line parsing for all parameters
+- change from serial operation to parallel operation
