@@ -1,21 +1,16 @@
 # readme
 
-This script sends a file (in this case called ```bigfile``` to a remote server via scp, and then redownloads the file to measure the total amount.
+This script sends one or multiple files defined in the script to a remote server via scp, and then redownloads the file to measure the total time elapsed to do so amount.
 
 ## Script Requirements
 - Python 2.7 or higher
 - Python Module paramiko (Install: ```$ pip install paramiko```)
 - Python Module scp (Install: ```$ pip install scp```)
 - Remote SSH server with scp connections enabled
-- Unix host (to run dd and scp, both can also be run on Windows)
 
+## Create file(s)
 
-## Create file
+To create a set of random binary files of a certain size (all equally big), use the script randomfile.py in this folder. Adapt the parameters according to your needs in the script.
 
-To create a file of 151 KBytes, use this command on any Unix-Shell:
-
-```
-$ dd bs=500 count=310 if=/dev/random of=bigfile
-```
-
-This will generate a file of 151 KByte size with random data called ```bigfile```
+## Usage
+Make sure the files to be up and downloaded are placed in the root folder. Make sure you change the parameter ```filename``` in the script ```updownload.py``` to match the filename (if you're using one file) or the prefix pattern (if you're using multiple files) which you have generated with the script ```randomfile.py```.
