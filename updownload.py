@@ -14,24 +14,31 @@ print ('Filesize is', filesize)
 print ('amount of generated files:', fileamount)
 print ('fileprefix is:', fileprefix)
 
+
+# Generate temporary test files with fixed size and random content
+print ('Generating random files...')
 for i in range (0, fileamount):
     filename = fileprefix+str(i+1)
-    print('Generated file:', filename)
     with open(filename, 'wb') as fout:
         fout.write(os.urandom(filesize))
 
+
+# Define SSH connection to remote server. Remote host is defined by cmd-line input
 ssh = SSHClient()
 ssh.load_system_host_keys()
 ssh.connect(hostname)
 
+# Open SSH-Socket
 with SCPClient(ssh.get_transport()) as scp:
     start = timer()
+    # loop through files. Upload, then download
     for i in range(0,23):
         file = fileprefix+str(i+1)
         scp.put(file)
         scp.get(file)
     end = timer()
     print(end - start)
+
 
 # cleanup
 fileList = glob.glob(fileprefix+'*')
