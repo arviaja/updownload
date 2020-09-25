@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from threading import Thread
+from multiprocessing import Pool
 from time import sleep
 import argparse
 from paramiko import SSHClient
@@ -9,7 +9,7 @@ import sys, glob, os
 from timeit import default_timer as timer
 
 fileprefix = 'outputfile_'
-fileamount = 6
+fileamount = 24
 
 def upDownSingleThreaded(scp):
     # loop through files. Upload, then download
@@ -56,22 +56,19 @@ def main():
     ssh.connect(hostname, username=user, key_filename=key_file)
 
     pre_start = timer()
-    threads = []
-    if args.threads:
-        for i in range(0,fileamount):
-            thread = Thread(target=upDownMultiThreaded, args = [SCPClient(ssh.get_transport()), i])
-            threads.append(thread)
-
+    pool = Pool(10)
     start = timer()
     if args.threads:
-        for thread in threads:
-            thread.start()
+        for i in range(0,fileamount):
+            pool.apply_async(upDownMultiThreaded, [SCPClient(ssh.get_transport()), i])
             sleep(1./24.)
-        for thread in threads:
-            thread.join()
+        pool.close()
+        pool.join()
     else:
         upDownSingleThreaded(SCPClient(ssh.get_transport()))
     end = timer()
+
+    print('Total time: %f' % (end-start))
     print('Average up- and download time per file: %f' % ((end - start)/fileamount))
     if args.threads:
         print("Initialization of threads: %f" % (start-pre_start))
