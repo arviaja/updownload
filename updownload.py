@@ -57,6 +57,35 @@ def upDownMultiThreaded3(hostname, user, key_file, queue):
         scp.get(file, local_path=downloadPath)
         file_id = queue.get()
 
+def upDownMultiThreaded4(hostname, user, key_file, queue):
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(hostname, username=user, key_filename=key_file)
+    scp = SCPClient(ssh.get_transport())
+
+    file_id = queue.get()
+    total_time = 0
+    total_upload = 0
+    total_download = 0
+    counter = 0
+    while file_id >= 0:
+        start = timer()
+        file = fileprefix+str(file_id)
+        scp = SCPClient(ssh.get_transport())
+        scp.put(file)
+        mid = timer()
+        scp.get(file, local_path=downloadPath)
+        end = timer()
+        if counter > 0:
+            total_time += end-start
+            total_upload += mid-start
+            total_download += end-mid
+        counter += 1
+        file_id = queue.get()
+    print("Average time for up-/download: %f, upload: %f, and download: %f" 
+        % (total_time / counter, total_upload / counter, total_download/counter) )
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('hostname', help='remote machine to up- and download test files')
@@ -133,6 +162,29 @@ def main():
         processes = []
         for i in range(0,nthreads):
             job = Process(target = upDownMultiThreaded3, args=(hostname, user, key_file, queue) )
+            job.start()
+            processes.append(job)
+
+        for i in range(0,nthreads):
+            queue.put(i)
+        sleep(nthreads)
+        start = timer()
+        for i in range(0,fileamount):
+            queue.put(i)
+            sleep(1./24.)      
+
+        for job in processes:
+            queue.put(-1)
+        for job in processes:
+            job.join()
+        end = timer()
+
+    elif transfer_mode == 4:
+        pre_start = timer()
+        queue = Queue()
+        processes = []
+        for i in range(0,nthreads):
+            job = Process(target = upDownMultiThreaded4, args=(hostname, user, key_file, queue) )
             job.start()
             processes.append(job)
 
